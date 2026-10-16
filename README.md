@@ -1,42 +1,42 @@
-# Exam Score Predictor
+<div align="center">
 
-FastAPI backend + HTML/CSS/JS frontend for the optimized XGBoost model.
+# 🎓 Exam Score Predictor
 
-## Run
+**Enter a student's habits and get a predicted exam score out of 100.**
+
+[![Live Demo]()
+
+</div>
+
+## ✨ What it does
+
+A full-stack ML app: an **XGBoost** model trained on 20,000 student records, served by a **FastAPI** backend, with a custom **HTML, CSS and JavaScript** frontend.
+
+- 🎯 Live score prediction with a likely range
+- 💡 Tips showing which changes would raise the score most
+- 🧑‍🎓 Example students and a Randomize button
+- 📊 Save predictions and compare them side by side
+- 🌙 Light and dark themes, mobile friendly
+
+## 🧠 Model
+
+XGBoost Regressor on 9 inputs: age, course, study hours, attendance, internet access, sleep hours, sleep quality, study method and facility rating. Study hours matter most (about 56% of feature importance).
+
+## 💻 Run locally
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+git clone https://github.com/Vishu18-xyz/exam-score-predictor.git
+cd exam-score-predictor
 pip install -r requirements.txt
 uvicorn backend.main:app --reload
 ```
 
-Open http://127.0.0.1:8000 (interactive API docs: http://127.0.0.1:8000/docs).
+Open http://127.0.0.1:8000. API docs are at `/docs`.
 
-The app loads `backend/model/optimized_xgb_model.json` (portable across XGBoost
-versions). If you ever see "input stream corrupted", run `pip install -U xgboost`.
-To re-export after retraining: `model.save_model("backend/model/optimized_xgb_model.json")`.
+## ☁️ Deploy
 
-## API
+One FastAPI service, so it runs on Render, Railway or any Docker host. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
-| Method | Path           | Purpose                                      |
-|--------|----------------|----------------------------------------------|
-| GET    | /api/health    | Server and model feature check               |
-| GET    | /api/options   | Allowed categories and slider ranges         |
-| POST   | /api/predict   | Predicted score, likely range, what-if tips  |
+---
 
-Example:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/predict -H "Content-Type: application/json" -d '{
-  "age": 20, "course": "bca", "study_hours": 5, "class_attendance": 80,
-  "internet_access": "yes", "sleep_hours": 7, "sleep_quality": "good",
-  "study_method": "coaching", "facility_rating": "high"
-}'
-```
-
-## Notes
-
-- The model uses 9 features. `student_id`, `gender` and `exam_difficulty` are not model inputs.
-- Categoricals are label-encoded alphabetically (see `CATEGORIES` in `backend/main.py`).
-- `MODEL_MAE` in `backend/main.py` sets the "likely between" range. Replace it with the MAE from your own test set.
+<div align="center">Made by <a href="https://github.com/Vishu18-xyz">Vishu18-xyz</a> · Give it a ⭐ if you like it</div>
