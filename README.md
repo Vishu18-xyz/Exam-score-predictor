@@ -4,7 +4,7 @@
 
 **Enter a student's habits and get a predicted exam score out of 100.**
 
-[![Live Demo]()
+[![Live Demo](https://exam-score-predictor-sa6l.onrender.com/)
 
 </div>
 
