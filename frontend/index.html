@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exam Score Predictor</title>
+  <meta name="description" content="Estimate a student's exam score from study habits, attendance and sleep.">
+  <script>
+    // Set the theme before first paint to avoid a flash.
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark") {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Caveat:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="masthead-text">
+        <h1>Exam score predictor</h1>
+        <p>Describe a student's habits. The model estimates the score they're likely to get out of 100.</p>
+      </div>
+      <button type="button" id="theme" class="icon-btn" aria-label="Switch to dark theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <main class="layout">
+      <form id="form" class="sheet" autocomplete="off" novalidate>
+        <div class="presets" role="group" aria-label="Start from an example student">
+          <span class="presets-label">Start from</span>
+          <button type="button" class="chip-btn" data-preset="typical">Typical student</button>
+          <button type="button" class="chip-btn" data-preset="achiever">High achiever</button>
+          <button type="button" class="chip-btn" data-preset="struggling">Struggling</button>
+          <button type="button" class="chip-btn" data-preset="crammer">Late-night crammer</button>
+          <button type="button" class="chip-btn" id="randomize">Randomize</button>
+        </div>
+
+        <fieldset class="group">
+          <legend>The student</legend>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="age">Age</label>
+              <output for="age" id="age-out"></output>
+            </div>
+            <input type="range" id="age" name="age">
+          </div>
+
+          <div class="field">
+            <label for="course">Course</label>
+            <div class="select-wrap">
+              <select id="course" name="course"></select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Study habits</legend>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="study_hours">Study time per day</label>
+              <output for="study_hours" id="study_hours-out"></output>
+            </div>
+            <input type="range" id="study_hours" name="study_hours">
+          </div>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="class_attendance">Class attendance</label>
+              <output for="class_attendance" id="class_attendance-out"></output>
+            </div>
+            <input type="range" id="class_attendance" name="class_attendance">
+          </div>
+
+          <div class="field">
+            <span class="label" id="study_method-label">Main study method</span>
+            <div class="choices" id="study_method" role="radiogroup" aria-labelledby="study_method-label"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Sleep</legend>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="sleep_hours">Sleep per night</label>
+              <output for="sleep_hours" id="sleep_hours-out"></output>
+            </div>
+            <input type="range" id="sleep_hours" name="sleep_hours">
+          </div>
+
+          <div class="field">
+            <span class="label" id="sleep_quality-label">Sleep quality</span>
+            <div class="choices" id="sleep_quality" role="radiogroup" aria-labelledby="sleep_quality-label"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Campus and home</legend>
+
+          <div class="field">
+            <span class="label" id="facility_rating-label">Facility rating</span>
+            <div class="choices" id="facility_rating" role="radiogroup" aria-labelledby="facility_rating-label"></div>
+          </div>
+
+          <div class="field">
+            <span class="label" id="internet_access-label">Internet access</span>
+            <div class="choices" id="internet_access" role="radiogroup" aria-labelledby="internet_access-label"></div>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" id="predict" class="btn btn-primary">Predict score</button>
+          <button type="button" id="reset" class="btn btn-secondary">Reset</button>
+          <label class="switch">
+            <input type="checkbox" id="live" role="switch" checked>
+            <span class="switch-track" aria-hidden="true"></span>
+            <span class="switch-text">Update as I change values</span>
+          </label>
+        </div>
+      </form>
+
+      <aside class="marksheet" aria-label="Prediction result">
+        <div class="paper" id="paper">
+          <h2 id="result-title">Predicted score</h2>
+
+          <div aria-live="polite">
+            <div class="mark" id="mark">
+              <svg class="loop" viewBox="0 0 240 130" preserveAspectRatio="none" aria-hidden="true">
+                <path id="loop-path" d="M30 70 C 26 26, 120 8, 188 20 C 236 30, 240 84, 178 108 C 116 130, 18 112, 24 62 C 28 34, 70 18, 112 14" />
+              </svg>
+              <span class="score" id="score">--</span>
+            </div>
+            <p class="out-of">out of 100</p>
+            <p class="band" id="band">Waiting for the first estimate</p>
+          </div>
+
+          <p class="stale-hint" id="stale-hint" hidden>Values changed. Press Predict score to update.</p>
+
+          <div class="ruler" aria-hidden="true">
+            <div class="ruler-track">
+              <div class="ruler-range" id="ruler-range"></div>
+              <div class="ruler-pin" id="ruler-pin"></div>
+            </div>
+            <div class="ruler-ticks"><span>0</span><span>50</span><span>100</span></div>
+          </div>
+          <p class="range-text" id="range-text"></p>
+
+          <div class="result-actions">
+            <button type="button" id="save" class="btn btn-secondary" disabled>Save to compare</button>
+            <button type="button" id="copy" class="btn btn-secondary" disabled>Copy summary</button>
+          </div>
+
+          <div class="levers">
+            <h3>What would raise it most</h3>
+            <ul id="levers"></ul>
+          </div>
+
+          <p class="error" id="error" role="alert" hidden></p>
+        </div>
+
+        <section class="compare" aria-labelledby="compare-title">
+          <div class="compare-head">
+            <h3 id="compare-title">Saved to compare</h3>
+            <button type="button" id="clear-saved" class="btn-quiet" hidden>Clear all</button>
+          </div>
+          <p class="compare-empty" id="compare-empty">Change a few values, then press Save to compare to line up predictions side by side.</p>
+          <ul class="saved" id="saved"></ul>
+        </section>
+
+        <p class="note">An estimate from an XGBoost model trained on 20,000 student records. It shows patterns in the data, not a guarantee for any one student.</p>
+      </aside>
+    </main>
+  </div>
+
+  <div class="minibar" id="minibar" hidden>
+    <div class="minibar-score">
+      <span class="minibar-num" id="minibar-num">--</span>
+      <span class="minibar-sub">out of 100</span>
+    </div>
+    <button type="button" id="minibar-predict" class="btn btn-primary">Predict score</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
