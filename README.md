@@ -35,7 +35,7 @@ Open http://127.0.0.1:8000. API docs are at `/docs`.
 
 ## ☁️ Deploy
 
-One FastAPI service, so it runs on Render, Railway or any Docker host. See [DEPLOYMENT.md](DEPLOYMENT.md).
+One FastAPI service, so it runs on Render......
 
 ---
 
